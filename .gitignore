@@ -1,0 +1,9 @@
+/packages/
+
+/Terradue.OpenSearch.Twitter/.svn/
+
+/Terradue.OpenSearch.Twitter/bin/
+
+/Terradue.OpenSearch.Twitter/obj/
+
+*.userprefs
