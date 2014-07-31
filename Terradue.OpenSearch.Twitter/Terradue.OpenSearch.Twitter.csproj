@@ -5,8 +5,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{F5BDC1AD-3355-4EA7-85A3-16F8358D1F50}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Terradue.Twitter</RootNamespace>
-    <AssemblyName>Terradue.Twitter</AssemblyName>
+    <RootNamespace>Terradue.OpenSearch.Twitter</RootNamespace>
+    <AssemblyName>Terradue.OpenSearch.Twitter</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -57,10 +57,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Terradue.Portal\Terradue.Portal.csproj">
-      <Project>{2E8D7875-8347-4205-936B-F1BBA2164D87}</Project>
-      <Name>Terradue.Portal</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Terradue.OpenSearch\Terradue.OpenSearch.csproj">
       <Project>{EA911C65-7F54-4909-97AB-AF66C8069D3A}</Project>
       <Name>Terradue.OpenSearch</Name>

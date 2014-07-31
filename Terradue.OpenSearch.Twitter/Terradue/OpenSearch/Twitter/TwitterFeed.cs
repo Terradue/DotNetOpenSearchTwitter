@@ -153,7 +153,13 @@ namespace Terradue.OpenSearch.Twitter {
             searchOptions.Q = " from:" + this.Author;
             searchOptions.Count = 20;
 
+            GetRateLimitStatusOptions rateOption = new GetRateLimitStatusOptions();
+            TwitterRateLimitStatusSummary rate = service.GetRateLimitStatus(rateOption);
+
             var tweetResults = service.Search(searchOptions);
+            TwitterRateLimitStatus rateSearch = service.Response.RateLimitStatus;
+            //throw new Exception(String.Format("Access token is {0} ; {1}/{2} hits remaining ; ", rate.AccessToken, rateSearch.RemainingHits, rateSearch.HourlyLimit));
+            if (tweetResults == null) return new List<TwitterFeed>();
 
             List<TwitterFeed> result = new List<TwitterFeed>();
 
