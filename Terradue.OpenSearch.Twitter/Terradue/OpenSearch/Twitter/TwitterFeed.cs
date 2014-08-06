@@ -16,6 +16,9 @@ using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
 using Terradue.ServiceModel.Syndication;
 using TweetSharp;
+using System.Net;
+using System.Runtime.Serialization;
+using ServiceStack.Text;
 
 namespace Terradue.OpenSearch.Twitter {
 
@@ -38,6 +41,12 @@ namespace Terradue.OpenSearch.Twitter {
         /// </summary>
         /// <value>The token.</value>
         public string Token { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Bearer.
+        /// </summary>
+        /// <value>The Bearer.</value>
+        public string Bearer { get; set; }
 
         /// <summary>
         /// Gets or sets the secret token.
@@ -138,6 +147,8 @@ namespace Terradue.OpenSearch.Twitter {
         public TwitterFeed(TwitterApplication app, string baseurl){
             this.Application = app;
             this.BaseUrl = baseurl;
+
+            this.GetBearerToken();
         }
 
         /// <summary>
@@ -153,7 +164,11 @@ namespace Terradue.OpenSearch.Twitter {
             searchOptions.Q = " from:" + this.Author;
             searchOptions.Count = 20;
 
+
+            System.Net.ServicePointManager.Expect100Continue = false;
+
             TwitterSearchResult tweetResults = null;
+
 
             tweetResults = service.Search(searchOptions);
             if (tweetResults == null) return new List<TwitterFeed>();
@@ -169,6 +184,62 @@ namespace Terradue.OpenSearch.Twitter {
                 feed.Url = "http://twitter.com/"+tweet.Author+"/status/"+tweet.Id;
                 feed.Time = tweet.CreatedDate;
                 result.Add(feed);
+            }
+            return result;
+        }
+
+
+        public void GetBearerToken(){
+            string token = null;
+            string ApiBaseUrl = "https://api.twitter.com";
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(ApiBaseUrl + "/oauth2/token");
+            request.Method = "POST";
+            request.ContentType = "application/x-www-form-urlencoded;charset=UTF-8";
+            request.UserAgent = "geohazards-tep.eo.esa.int";
+            request.Headers.Add(HttpRequestHeader.Authorization, "Basic " + Convert.ToBase64String(System.Text.ASCIIEncoding.ASCII.GetBytes(this.Application.ConsumerKey + ":" + this.Application.ConsumerSecretKey)));
+
+            string json = "grant_type=client_credentials";
+
+            using (var streamWriter = new StreamWriter(request.GetRequestStream())) {
+                streamWriter.Write(json);
+                streamWriter.Flush();
+                streamWriter.Close();
+
+                using (var reader = new StreamReader(request.GetResponse().GetResponseStream())) {
+                    string text = reader.ReadToEnd();
+
+                    TwitterTokenResponse response = ServiceStack.Text.JsonSerializer.DeserializeFromString<TwitterTokenResponse>(text);
+                    this.Application.Bearer = response.access_token;
+                }
+            }
+        }
+
+        public List<TwitterFeed> GetStatuses(){
+            List<TwitterFeed> result = new List<TwitterFeed>();
+            string ApiBaseUrl = "https://api.twitter.com";
+            string ApiVersion = "1.1";
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(ApiBaseUrl + "/" + ApiVersion + "/statuses/user_timeline.json?screen_name="+this.Author);
+            request.Method = "GET";
+            request.ContentType = "application/json";
+            request.UserAgent = "geohazards-tep.eo.esa.int";
+            request.Headers.Add(HttpRequestHeader.Authorization, "Bearer " + this.Application.Bearer);
+
+
+            using (var reader = new StreamReader(request.GetResponse().GetResponseStream())) {
+                string text = reader.ReadToEnd();
+
+                List<TwitterStatusResponse> response = ServiceStack.Text.JsonSerializer.DeserializeFromString<List<TwitterStatusResponse>>(text);
+
+                foreach (TwitterStatusResponse tweet in response){
+                    TwitterFeed feed = new TwitterFeed(this.BaseUrl);
+                    feed.Identifier = tweet.id.ToString();
+                    feed.Author = tweet.user.screen_name;
+                    feed.Title = tweet.user.name;
+                    feed.Content = tweet.text;
+                    feed.Url = "http://twitter.com/"+tweet.user.screen_name+"/status/"+tweet.id;
+                    feed.Time = tweet.created_at;
+                    result.Add(feed);
+                }
             }
             return result;
         }
@@ -356,6 +427,36 @@ namespace Terradue.OpenSearch.Twitter {
         public OpenSearchUrl GetSearchBaseUrl(string mimeType) {
             return new OpenSearchUrl (string.Format("{0}/{1}/search", this.BaseUrl, "twitter"));
         }
+    }
+
+    [DataContract]
+    public class TwitterTokenResponse{
+        [DataMember]
+        public string access_token { get; set; }
+        [DataMember]
+        public string token_type { get; set; }
+    }
+
+    [DataContract]
+    public class TwitterStatusResponse{
+        [DataMember]
+        public string id { get; set; }
+        [DataMember]
+        public string text { get; set; }
+        [DataMember]
+        public TwitterUserResponse user { get; set; }
+        [DataMember]
+        public DateTime created_at { get; set; }
+    }
+
+    [DataContract]
+    public class TwitterUserResponse{
+        [DataMember]
+        public string id { get; set; }
+        [DataMember]
+        public string name { get; set; }
+        [DataMember]
+        public string screen_name { get; set; }
     }
 }
 
