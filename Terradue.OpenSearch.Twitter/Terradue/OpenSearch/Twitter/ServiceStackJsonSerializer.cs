@@ -1,4 +1,12 @@
-﻿using System;
+﻿//
+//  ServiceStackJsonSerializer.cs
+//
+//  Author:
+//       Enguerran Boissier <enguerran.boissier@terradue.com>
+//
+//  Copyright (c) 2014 Terradue
+
+using System;
 using ServiceStack;
 using ServiceStack.Text;
 using TweetSharp;
