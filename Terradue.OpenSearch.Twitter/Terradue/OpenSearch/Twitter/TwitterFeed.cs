@@ -174,8 +174,10 @@ namespace Terradue.OpenSearch.Twitter {
 
             TwitterSearchResult tweetResults = null;
 
-
-            tweetResults = service.Search(searchOptions);
+            try{
+                tweetResults = service.Search(searchOptions);
+            }catch(Exception e){
+            }
             if (tweetResults == null) return new List<TwitterFeed>();
 
             List<TwitterFeed> result = new List<TwitterFeed>();
@@ -210,12 +212,11 @@ namespace Terradue.OpenSearch.Twitter {
             searchOptions.Count = Int32.Parse(parameters["count"] != null ? parameters["count"] : "20");
             searchOptions.Q = parameters["q"] + "from:" + this.Author + (this.Tags != null && this.Tags != string.Empty ? "," + this.Tags : "");
 
-            TwitterSearchResult tweetResults;
+            TwitterSearchResult tweetResults = null;
 
             try{
                 tweetResults= service.Search(searchOptions);
             }catch(Exception e){
-                throw e;
             }
 
             if (tweetResults != null) {
