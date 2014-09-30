@@ -27,8 +27,8 @@ TwitterApplication twitterApp = new TwitterApplication(twitterConsumerKey,
 //Create Twitter Feed content
 string myBaseUrl = "<MY_APP_BASEURL>"; //will be use in the opensearch response
 TwitterFeed twitter1 = new TwitterFeed(twitterApp, myBaseUrl);
-twitter1.Author = "<AUTHOR_TO_SEARCH>";
-twitter1.Tags = new List<string>{ "<TAG_1>", "<TAG_2>" };
+twitter1.Author = "<TWITTER_ACCOUNT_TO_SEARCH>";
+twitter1.Tags = new List<string>{ "<HASHTAG_1>", "<HASHTAG_2>" };
 
 List<TwitterFeed> twitters = new List<TwitterFeed>();
 twitters.Add(twitter1);
