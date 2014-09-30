@@ -5,10 +5,34 @@ DotNetOpenSearchTwitter is a library targeting .NET 4.0 and above providing an e
 ## Usage examples
 
 ```c#
+using Terradue.OpenSearch; //from DotNetOpenSearch
+using Terradue.OpenSearch.Engine; //from DotNetOpenSearch
+using Terradue.OpenSearch.Result; //from DotNetOpenSearch
+using Terradue.OpenSearch.Twitter; //from DotNetOpenSearchTwitter
+
 HttpRequest httpRequest = HttpContext.Current.Request;
 OpenSearchEngine ose = MasterCatalogue.OpenSearchEngine;
 Type type = OpenSearchFactory.ResolveTypeFromRequest(httpRequest, ose);
-List<TwitterFeed> twitters = TwitterNews.LoadTwitterFeeds(context);
+
+//Create Twitter Application
+string twitterConsumerKey = "<YOUR_CONSUMER_KEY>";
+string twitterConsumerSecret = "<YOUR_CONSUMER_SECRET>";
+string twitterToken = "<YOUR_TOKEN>";
+string twitterTokenSecret = "<YOUR_TOKEN_SECRET>";
+TwitterApplication twitterApp = new TwitterApplication(twitterConsumerKey, 
+                                                       twitterConsumerSecret, 
+                                                       twitterToken, 
+                                                       twitterTokenSecret);
+
+//Create Twitter Feed content
+string myBaseUrl = "<MY_APP_BASEURL>"; //will be use in the opensearch response
+TwitterFeed twitter1 = new TwitterFeed(twitterApp, myBaseUrl);
+twitter1.Author = "<AUTHOR_TO_SEARCH>";
+twitter1.Tags = new List<string>{ "<TAG_1>", "<TAG_2>" };
+
+List<TwitterFeed> twitters = new List<TwitterFeed>();
+twitters.Add(twitter1);
+
 MultiGenericOpenSearchable multiOSE = new MultiGenericOpenSearchable(twitters.Cast<IOpenSearchable>().ToList(), ose, false);
 result = ose.Query(multiOSE, httpRequest.QueryString, type);
 ```
