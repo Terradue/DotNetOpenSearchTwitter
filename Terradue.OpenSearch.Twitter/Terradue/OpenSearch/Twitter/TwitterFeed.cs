@@ -125,7 +125,7 @@ namespace Terradue.OpenSearch.Twitter {
         /// Gets or sets the tags.
         /// </summary>
         /// <value>The tags.</value>
-        public string Tags { get; set; }
+        public List<string> Tags { get; set; }
 
         /// <summary>
         /// Gets or sets the application.
@@ -162,21 +162,24 @@ namespace Terradue.OpenSearch.Twitter {
         /// <param name="context">Context.</param>
         public List<TwitterFeed> GetFeeds(){
 
+            if(this.Author == null && this.Tags == null) return null;
+
             var service = new TwitterService(Application.ConsumerKey, Application.ConsumerSecretKey);
             service.AuthenticateWith(Application.Token, Application.SecretToken);
 
             SearchOptions searchOptions = new SearchOptions();
-            searchOptions.Q = " from:" + this.Author;
             searchOptions.Count = 20;
+            searchOptions.Q = "";
 
+            if (this.Author != null) searchOptions.Q = "from:" + this.Author;
+            if (this.Tags != null) searchOptions.Q += " #" + string.Join(", #",this.Tags);
 
             System.Net.ServicePointManager.Expect100Continue = false;
 
             TwitterSearchResult tweetResults = null;
-
             try{
                 tweetResults = service.Search(searchOptions);
-            }catch(Exception e){
+            }catch(Exception){
             }
             if (tweetResults == null) return new List<TwitterFeed>();
 
@@ -188,7 +191,7 @@ namespace Terradue.OpenSearch.Twitter {
                 feed.Author = tweet.User.ScreenName;
                 feed.Title = tweet.User.Name;
                 feed.Content = tweet.TextAsHtml;
-                feed.Url = "http://twitter.com/"+tweet.Author+"/status/"+tweet.Id;
+                feed.Url = "http://twitter.com/" + tweet.Author + "/status/" + tweet.Id;
                 feed.Time = tweet.CreatedDate;
                 result.Add(feed);
             }
@@ -202,6 +205,8 @@ namespace Terradue.OpenSearch.Twitter {
         /// <param name="parameters">Parameters of the query</param>
         void GenerateAtomFeed(Stream input, System.Collections.Specialized.NameValueCollection parameters) {
 
+            if(this.Author == null && this.Tags == null) return;
+
             AtomFeed feed = new AtomFeed();
             List<AtomItem> items = new List<AtomItem>();
 
@@ -210,13 +215,16 @@ namespace Terradue.OpenSearch.Twitter {
 
             SearchOptions searchOptions = new SearchOptions();
             searchOptions.Count = Int32.Parse(parameters["count"] != null ? parameters["count"] : "20");
-            searchOptions.Q = parameters["q"] + "from:" + this.Author + (this.Tags != null && this.Tags != string.Empty ? "," + this.Tags : "");
+            searchOptions.Q = "";
+
+            if (this.Author != null) searchOptions.Q += "from:" + this.Author;
+            if (this.Tags != null) searchOptions.Q += " #" + string.Join(", #",this.Tags);
 
             TwitterSearchResult tweetResults = null;
 
             try{
                 tweetResults= service.Search(searchOptions);
-            }catch(Exception e){
+            }catch(Exception){
             }
 
             if (tweetResults != null) {
