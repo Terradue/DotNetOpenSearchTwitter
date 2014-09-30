@@ -172,7 +172,7 @@ namespace Terradue.OpenSearch.Twitter {
             searchOptions.Q = "";
 
             if (this.Author != null) searchOptions.Q = "from:" + this.Author;
-            if (this.Tags != null) searchOptions.Q += " #" + string.Join(", #",this.Tags);
+            if (this.Tags != null) searchOptions.Q += " #" + string.Join(" OR #",this.Tags);
 
             System.Net.ServicePointManager.Expect100Continue = false;
 
