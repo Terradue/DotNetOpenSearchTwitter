@@ -25,7 +25,6 @@ using Terradue.OpenSearch.Schema;
 using Terradue.ServiceModel.Syndication;
 using TweetSharp;
 using System.Net;
-using ServiceStack.Text;
 
 namespace Terradue.OpenSearch.Twitter {
 
@@ -386,6 +385,10 @@ namespace Terradue.OpenSearch.Twitter {
         /// <param name="osr">IOpenSearchResult cotnaing the result of the a search</param>
         /// <param name="request">Request.</param>
         public void ApplyResultFilters(OpenSearchRequest request, ref IOpenSearchResultCollection osr) {
+        }
+
+        public ParametersResult DescribeParameters() {
+            return OpenSearchFactory.GetDefaultParametersResult();
         }
     }
 
