@@ -390,6 +390,12 @@ namespace Terradue.OpenSearch.Twitter {
         public ParametersResult DescribeParameters() {
             return OpenSearchFactory.GetDefaultParametersResult();
         }
+
+        public bool CanCache {
+            get {
+                return true;
+            }
+        }
     }
 
 }
