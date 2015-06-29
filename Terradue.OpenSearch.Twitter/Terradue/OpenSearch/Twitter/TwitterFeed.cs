@@ -366,8 +366,10 @@ namespace Terradue.OpenSearch.Twitter {
         /// Get the total of possible results for the OpenSearchable entity
         /// </summary>
         /// <returns>a unsigned long number representing the number of items searchable</returns>
-        public long GetTotalResults(string mimetype, NameValueCollection parameters) {
-            return 0;
+        public long TotalResults {
+            get {
+                return 0;
+            }
         }
 
         /// <summary>
