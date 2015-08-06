@@ -12,7 +12,7 @@
     <summary>Twitter opensearch library for .Net</summary>
     <dependencies>
       <dependency id="TweetSharp" version="2.3.1" />
-      <dependency id="Terradue.OpenSearch" version="[1.10,1.11)" />
+      <dependency id="Terradue.OpenSearch" version="[1.11,1.12)" />
       <dependency id="Terradue.ServiceModel.Syndication" version="[1.0,1.1)" />
     </dependencies>
   </metadata>
