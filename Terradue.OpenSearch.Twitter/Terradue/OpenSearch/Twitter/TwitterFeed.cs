@@ -228,14 +228,13 @@ namespace Terradue.OpenSearch.Twitter {
 
             if (tweetResults != null) {
                 foreach (TwitterStatus tweet in tweetResults.Statuses) {
-                    DateTimeOffset time;
-                    if (tweet.CreatedDate.Ticks > 0)
-                        time = new DateTimeOffset(tweet.CreatedDate);
-                    else
-                        time = new DateTimeOffset(DateTime.Now);
-                    AtomItem item = new AtomItem(tweet.User.Name, new TextSyndicationContent(tweet.TextAsHtml, TextSyndicationContentKind.Html), new Uri("http://twitter.com/" + tweet.User.ScreenName + "/status/" + tweet.Id), tweet.Id.ToString(), time);
+                    
+                    AtomItem item = new AtomItem(tweet.User.Name, new TextSyndicationContent(tweet.TextAsHtml, TextSyndicationContentKind.Html), new Uri("http://twitter.com/" + tweet.User.ScreenName + "/status/" + tweet.Id), tweet.Id.ToString(), tweet.CreatedDate);
                     item.Categories.Add(new SyndicationCategory("twitter"));
-                    item.PublishDate = time;
+                    if (tweet.CreatedDate.Ticks > 0)
+                        item.PublishDate = tweet.CreatedDate;
+                    else
+                        item.PublishDate = DateTime.Now;
                     item.Authors.Add(new SyndicationPerson(tweet.User.Name,tweet.User.ScreenName,tweet.User.ProfileImageUrl));
                     items.Add(item);
                 }
