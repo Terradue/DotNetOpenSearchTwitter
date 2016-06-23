@@ -121,6 +121,12 @@ namespace Terradue.OpenSearch.Twitter {
         public string Author { get; set; }
 
         /// <summary>
+        /// Gets or sets the author image URL.
+        /// </summary>
+        /// <value>The author image url.</value>
+        public string AuthorImageUrl { get; set; }
+
+        /// <summary>
         /// Gets or sets the tags.
         /// </summary>
         /// <value>The tags.</value>
@@ -188,6 +194,7 @@ namespace Terradue.OpenSearch.Twitter {
                 TwitterFeed feed = new TwitterFeed(this.BaseUrl);
                 feed.Identifier = tweet.Id.ToString();
                 feed.Author = tweet.User.ScreenName;
+                feed.AuthorImageUrl = tweet.User.ProfileImageUrlHttps;
                 feed.Title = tweet.User.Name;
                 feed.Content = tweet.TextAsHtml;
                 feed.Url = "http://twitter.com/" + tweet.Author + "/status/" + tweet.Id;
@@ -235,7 +242,7 @@ namespace Terradue.OpenSearch.Twitter {
                         item.PublishDate = tweet.CreatedDate;
                     else
                         item.PublishDate = DateTime.Now;
-                    item.Authors.Add(new SyndicationPerson(tweet.User.Name,tweet.User.ScreenName,tweet.User.ProfileImageUrl));
+                    item.Authors.Add(new SyndicationPerson(tweet.User.Name,tweet.User.ScreenName,tweet.User.ProfileImageUrlHttps));
                     items.Add(item);
                 }
             }
