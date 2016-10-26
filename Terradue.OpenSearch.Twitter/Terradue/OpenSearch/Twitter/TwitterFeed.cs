@@ -282,11 +282,11 @@ namespace Terradue.OpenSearch.Twitter {
         }
 
         /// <summary>
-        /// Create the OpenSearch Request for the requested mime-type the specified type and parameters.
+        /// Create the specified querySettings and parameters.
         /// </summary>
-        /// <param name="mimetype">Mime-Type requested to the OpenSearchable entity</param>
-        /// <param name="parameters">Parameters of the request</param>
-        public OpenSearchRequest Create(string mimetype, System.Collections.Specialized.NameValueCollection parameters) {
+        /// <param name="querySettings">Query settings.</param>
+        /// <param name="parameters">Parameters.</param>
+        public OpenSearchRequest Create(QuerySettings querySettings, NameValueCollection parameters) {
             UriBuilder url = new UriBuilder(this.BaseUrl);
             url.Path += "twitter/"+this.Identifier+"/search";
             var array = (from key in parameters.AllKeys
@@ -295,7 +295,7 @@ namespace Terradue.OpenSearch.Twitter {
                 .ToArray();
             url.Query = string.Join("&", array);
 
-            MemoryOpenSearchRequest request = new MemoryOpenSearchRequest(new OpenSearchUrl(url.ToString()), mimetype);
+            MemoryOpenSearchRequest request = new MemoryOpenSearchRequest(new OpenSearchUrl(url.ToString()), querySettings.PreferredContentType);
 
             Stream input = request.MemoryInputStream;
 
