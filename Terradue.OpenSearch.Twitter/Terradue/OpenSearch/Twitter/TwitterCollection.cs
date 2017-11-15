@@ -77,12 +77,11 @@ namespace Terradue.OpenSearch.Twitter {
             service.AuthenticateWith(Application.Token, Application.SecretToken);
 
             SearchOptions searchOptions = new SearchOptions();
-            //searchOptions.Count = 20;
 
             var q = "";
             foreach(var account in Accounts){
                 if (account.Author != null) {
-                    q += "(from: " + account.Author;
+                    q += "(from:" + account.Author;
                     if (account.Tags != null && account.Tags.Count > 0){
                         foreach(var tag in account.Tags){
                             q += " AND #" + tag;
@@ -112,11 +111,20 @@ namespace Terradue.OpenSearch.Twitter {
                     else
                         item.PublishDate = DateTime.Now;
                     item.Authors.Add(new SyndicationPerson(tweet.User.Name, tweet.User.ScreenName, tweet.User.ProfileImageUrlHttps));
+                    item.LastUpdatedTime = tweet.CreatedDate;
                     items.Add(item);
                 }
             }
 
-            feed.Items = items;
+            int count = !string.IsNullOrEmpty(parameters["count"]) ? Int32.Parse(parameters["count"]) : 20;
+            int startPage = !string.IsNullOrEmpty(parameters["startPage"]) ? Int32.Parse(parameters["startPage"]) : 1;
+            int startIndex = !string.IsNullOrEmpty(parameters["startIndex"]) ? Int32.Parse(parameters["startIndex"]) : 1;
+
+            try {
+                feed.Items = items.Skip((startIndex - 1) + ((startPage - 1) * count)).Take(count);
+            }catch(Exception){
+                feed.Items = new List<AtomItem>();
+            }
             feed.TotalResults = items.Count;
 
             var sw = XmlWriter.Create(input);
