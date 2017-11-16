@@ -64,11 +64,10 @@ namespace Terradue.OpenSearch.Twitter {
         /// <summary>
         /// Generates the atom feed.
         /// </summary>
-        /// <param name="input">Input stream</param>
         /// <param name="parameters">Parameters of the query</param>
-        void GenerateAtomFeed(Stream input, System.Collections.Specialized.NameValueCollection parameters) {
+        AtomFeed GenerateAtomFeed(NameValueCollection parameters) {
 
-            if (this.Accounts == null || this.Accounts.Count == 0) return;
+            if (this.Accounts == null || this.Accounts.Count == 0) return null;
 
             AtomFeed feed = new AtomFeed();
             List<AtomItem> items = new List<AtomItem>();
@@ -127,14 +126,7 @@ namespace Terradue.OpenSearch.Twitter {
             }
             feed.TotalResults = items.Count;
 
-            var sw = XmlWriter.Create(input);
-            Atom10FeedFormatter atomFormatter = new Atom10FeedFormatter(feed.Feed);
-            atomFormatter.WriteTo(sw);
-            sw.Flush();
-            sw.Close();
-
-            return;
-
+            return feed;
         }
 
         /// <summary>
@@ -174,12 +166,7 @@ namespace Terradue.OpenSearch.Twitter {
                 .ToArray();
             url.Query = string.Join("&", array);
 
-            MemoryOpenSearchRequest request = new MemoryOpenSearchRequest(new OpenSearchUrl(url.ToString()), querySettings.PreferredContentType);
-
-            Stream input = request.MemoryInputStream;
-
-            GenerateAtomFeed(input, parameters);
-
+            AtomOpenSearchRequest request = new AtomOpenSearchRequest(new OpenSearchUrl(url.ToString()), GenerateAtomFeed);
             return request;
         }
 
