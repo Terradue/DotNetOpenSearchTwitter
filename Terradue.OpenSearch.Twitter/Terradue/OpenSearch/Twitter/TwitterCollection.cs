@@ -2,19 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
 using System.Web;
-using System.Xml;
+using ServiceStack.Text;
 using Terradue.OpenSearch.Engine;
 using Terradue.OpenSearch.Request;
 using Terradue.OpenSearch.Result;
 using Terradue.OpenSearch.Schema;
-using Terradue.ServiceModel.Syndication;
-using TweetSharp;
+
 
 namespace Terradue.OpenSearch.Twitter {
-    
+
     public class TwitterCollection : IOpenSearchable {
 
         /// <summary>
@@ -61,6 +59,44 @@ namespace Terradue.OpenSearch.Twitter {
             this.BaseUrl = baseurl;
         }
 
+        public List<TwitterFeed> GetFeeds(NameValueCollection parameters){
+            if (this.Accounts == null || this.Accounts.Count == 0) return null;
+
+            List<TwitterFeed> result = new List<TwitterFeed>();
+
+            var twitterClient = new TwitterClient(Application.ConsumerKey, Application.ConsumerSecretKey);
+
+            var q = parameters["q"] != null ? "\"" + parameters["q"] + "\"" : "";
+            foreach (var account in Accounts) {
+                if (account.Author != null) {
+                    q += "from:" + account.Author;
+                    if (account.Tags != null && account.Tags.Count > 0) {
+                        foreach (var tag in account.Tags) {
+                            q += " AND #" + tag;
+                        }
+                    }
+                }
+                q += " OR ";
+            }
+            q = q.TrimEnd(" OR ".ToCharArray());
+
+            SearchOptions options = new SearchOptions();
+            options.Q = q;
+            options.Count = parameters["count"];
+
+            TwitterSearchResult tweetResults = null;
+            try {
+                tweetResults = twitterClient.Search(options);
+            } catch (Exception e) {
+                var ie = e;
+            }
+
+            foreach (Status tweet in tweetResults.statuses) {
+                result.Add(new TwitterFeed(this.BaseUrl, tweet));
+            }
+            return result;
+        }
+
         /// <summary>
         /// Generates the atom feed.
         /// </summary>
@@ -72,46 +108,11 @@ namespace Terradue.OpenSearch.Twitter {
             AtomFeed feed = new AtomFeed();
             List<AtomItem> items = new List<AtomItem>();
 
-            var service = new TwitterService(Application.ConsumerKey, Application.ConsumerSecretKey);
-            service.AuthenticateWith(Application.Token, Application.SecretToken);
+            var feeds = GetFeeds(parameters);
 
-            SearchOptions searchOptions = new SearchOptions();
-
-            var q = "";
-            foreach(var account in Accounts){
-                if (account.Author != null) {
-                    q += "(from:" + account.Author;
-                    if (account.Tags != null && account.Tags.Count > 0){
-                        foreach(var tag in account.Tags){
-                            q += " AND #" + tag;
-                        }
-                    }
-                    q += ")";
-                }
-                q += " OR ";
-            }
-            q = q.TrimEnd(" OR ".ToCharArray());
-            searchOptions.Q = q;
-
-            TwitterSearchResult tweetResults = null;
-            try{
-                tweetResults = service.Search(searchOptions);
-            }catch(Exception e){
-                var ie = e;
-            }
-
-            if (tweetResults != null) {
-                foreach (TwitterStatus tweet in tweetResults.Statuses) {
-
-                    AtomItem item = new AtomItem(tweet.User.Name, new TextSyndicationContent(tweet.TextAsHtml, TextSyndicationContentKind.Html), new Uri("http://twitter.com/" + tweet.User.ScreenName + "/status/" + tweet.Id), tweet.Id.ToString(), tweet.CreatedDate);
-                    item.Categories.Add(new SyndicationCategory("twitter"));
-                    if (tweet.CreatedDate.Ticks > 0)
-                        item.PublishDate = tweet.CreatedDate;
-                    else
-                        item.PublishDate = DateTime.Now;
-                    item.Authors.Add(new SyndicationPerson(tweet.User.Name, tweet.User.ScreenName, tweet.User.ProfileImageUrlHttps));
-                    item.LastUpdatedTime = tweet.CreatedDate;
-                    items.Add(item);
+            if (feeds != null) {
+                foreach (TwitterFeed tweet in feeds) {
+                    items.Add(tweet.ToAtomItem());
                 }
             }
 
