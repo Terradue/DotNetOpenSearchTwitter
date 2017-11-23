@@ -108,6 +108,7 @@ namespace Terradue.OpenSearch.Twitter {
             AtomFeed feed = new AtomFeed();
             List<AtomItem> items = new List<AtomItem>();
 
+            parameters.Set("count","100");//to allow a bigger total result
             var feeds = GetFeeds(parameters);
 
             if (feeds != null) {
