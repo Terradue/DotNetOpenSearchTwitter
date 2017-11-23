@@ -7,24 +7,10 @@
 //  Copyright (c) 2014 Terradue
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.IO;
 using System.Linq;
-using System.Web;
-using System.Xml;
-using Hammock.Serialization;
-using Newtonsoft.Json;
-using Terradue.OpenSearch;
-using Terradue.OpenSearch.Engine;
-using Terradue.OpenSearch.Request;
-using Terradue.OpenSearch.Response;
 using Terradue.OpenSearch.Result;
-using Terradue.OpenSearch.Schema;
 using Terradue.ServiceModel.Syndication;
-using TweetSharp;
-using System.Net;
 
 namespace Terradue.OpenSearch.Twitter {
 
@@ -156,53 +142,39 @@ namespace Terradue.OpenSearch.Twitter {
         /// Initializes a new instance of the <see cref="Terradue.OpenSearch.Twitter.TwitterFeed"/> class.
         /// </summary>
         /// <param name="app">App.</param>
-        public TwitterFeed(TwitterApplication app, string baseurl){
+        public TwitterFeed(TwitterApplication app, string baseurl) : this(baseurl){
             this.Application = app;
-            this.BaseUrl = baseurl;
+        }
+
+        public TwitterFeed(string baseurl, Status tweet) : this(baseurl){
+            string format = "ddd MMM dd HH:mm:ss zzzz yyyy";
+            var date = DateTime.ParseExact(tweet.created_at, format, System.Globalization.CultureInfo.InvariantCulture);
+
+            this.Identifier = tweet.id_str;
+            this.Author = tweet.user.screen_name;
+            this.AuthorImageUrl = tweet.user.profile_image_url_https;
+            this.Title = tweet.user.name;
+            this.Content = tweet.text;
+            this.Url = "http://twitter.com/" + tweet.user.screen_name + "/status/" + tweet.id_str;
+            this.Time = date;
         }
 
         /// <summary>
-        /// Updates the with online feeds.
+        /// To atom item.
         /// </summary>
-        /// <param name="context">Context.</param>
-        public List<TwitterFeed> GetFeeds(){
-
-            if(this.Author == null && this.Tags == null) return null;
-
-            var service = new TwitterService(Application.ConsumerKey, Application.ConsumerSecretKey);
-            service.AuthenticateWith(Application.Token, Application.SecretToken);
-
-            SearchOptions searchOptions = new SearchOptions();
-            searchOptions.Count = 20;
-            searchOptions.Q = "";
-
-            if (this.Author != null) searchOptions.Q = "from:" + this.Author;
-            if (this.Tags != null) searchOptions.Q += " #" + string.Join(" OR #",this.Tags);
-
-            System.Net.ServicePointManager.Expect100Continue = false;
-
-            TwitterSearchResult tweetResults = null;
-            try{
-                tweetResults = service.Search(searchOptions);
-            }catch(Exception){
-            }
-            if (tweetResults == null) return new List<TwitterFeed>();
-
-            List<TwitterFeed> result = new List<TwitterFeed>();
-
-            foreach (TwitterStatus tweet in tweetResults.Statuses){
-                TwitterFeed feed = new TwitterFeed(this.BaseUrl);
-                feed.Identifier = tweet.Id.ToString();
-                feed.Author = tweet.User.ScreenName;
-                feed.AuthorImageUrl = tweet.User.ProfileImageUrlHttps;
-                feed.Title = tweet.User.Name;
-                feed.Content = tweet.TextAsHtml;
-                feed.Url = "http://twitter.com/" + tweet.Author + "/status/" + tweet.Id;
-                feed.Time = tweet.CreatedDate;
-                result.Add(feed);
-            }
-            return result;
+        /// <returns>The atom item.</returns>
+        public AtomItem ToAtomItem(){
+            AtomItem item = new AtomItem(this.Title, new TextSyndicationContent(this.Content), new Uri("http://twitter.com/" + this.Author + "/status/" + this.Identifier), this.Identifier, this.Time);
+            item.Categories.Add(new SyndicationCategory("twitter"));
+            if (this.Time.Ticks > 0)
+                item.PublishDate = this.Time;
+            else
+                item.PublishDate = DateTime.Now;
+            item.Authors.Add(new SyndicationPerson(this.Title, this.Author, this.AuthorImageUrl));
+            item.LastUpdatedTime = this.Time;
+            return item;
         }
+
     }
 
 }
