@@ -91,8 +91,10 @@ namespace Terradue.OpenSearch.Twitter {
                 var ie = e;
             }
 
-            foreach (Status tweet in tweetResults.statuses) {
-                result.Add(new TwitterFeed(this.BaseUrl, tweet));
+            if(tweetResults != null){
+                foreach (Status tweet in tweetResults.statuses) {
+                    result.Add(new TwitterFeed(this.BaseUrl, tweet));
+                }
             }
             return result;
         }
