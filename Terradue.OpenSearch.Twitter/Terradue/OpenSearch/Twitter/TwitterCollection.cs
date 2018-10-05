@@ -66,19 +66,31 @@ namespace Terradue.OpenSearch.Twitter {
 
             var twitterClient = new TwitterClient(Application.ConsumerKey, Application.ConsumerSecretKey);
 
-            var q = parameters["q"] != null ? "\"" + parameters["q"] + "\"" : "";
+            var q = parameters["q"] != null ? "\"" + parameters["q"] + "\" AND " : "";
+            var authors = parameters["author"] != null && parameters["author"] != "" ? parameters["author"].Split(',') : null;
             foreach (var account in Accounts) {
                 if (account.Author != null) {
-                    q += "from:" + account.Author;
-                    if (account.Tags != null && account.Tags.Count > 0) {
-                        foreach (var tag in account.Tags) {
-                            q += " AND #" + tag;
+
+                    //check if author is requested in search
+                    var addAuthor = false;
+                    if (authors != null) {
+                        foreach (var author in authors)
+                            if (author == account.Author) addAuthor = true;
+                    } else addAuthor = true; //we add all if null
+
+                    if (addAuthor) {
+                        q += "from:" + account.Author;
+                        if (account.Tags != null && account.Tags.Count > 0) {
+                            foreach (var tag in account.Tags) {
+                                q += " AND #" + tag;
+                            }
                         }
+                        q += " OR ";
                     }
                 }
-                q += " OR ";
             }
             q = q.TrimEnd(" OR ".ToCharArray());
+            q = q.TrimEnd(" AND ".ToCharArray());
 
             SearchOptions options = new SearchOptions();
             options.Q = q;
