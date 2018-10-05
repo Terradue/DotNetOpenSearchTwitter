@@ -12,7 +12,7 @@ using NuGet4Mono.Extensions;
 [assembly: AssemblyLicenseUrl("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: AssemblyVersion ("1.5")]
-[assembly: AssemblyInformationalVersion ("1.5")]
+[assembly: AssemblyVersion ("1.6")]
+[assembly: AssemblyInformationalVersion ("1.6")]
 
 [assembly: log4net.Config.XmlConfigurator(ConfigFile = "log4net.config", Watch = true)]
