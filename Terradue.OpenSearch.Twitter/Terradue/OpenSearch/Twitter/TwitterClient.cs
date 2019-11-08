@@ -76,7 +76,6 @@ namespace Terradue.OpenSearch.Twitter {
             var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
 
             var authHeader = "Bearer " + Bearer;
-            authHeader = "Bearer AAAAAAAAAAAAAAAAAAAAAFBDYAAAAAAAMwmciWbCWkY5kpVEq5i2m5E1QC0%3DYcgtGq5VuHfAiJu9N079eCBAKzdrZbsvxydrG6JkR7hM7V38v9";
             request.Headers.Add(HttpRequestHeader.Authorization, authHeader);
             request.Method = "GET";
 
@@ -85,6 +84,36 @@ namespace Terradue.OpenSearch.Twitter {
                     string result = streamReader.ReadToEnd();
                     try {
                         TwitterSearchResult response = JsonSerializer.DeserializeFromString<TwitterSearchResult>(result);
+                        return response;
+                    } catch (Exception e) {
+                        throw e;
+                    }
+                }
+            }
+        }
+
+        public List<Status> GetUserTimeline(string screen_name, SearchOptions options = null) {
+            var url = ApiBseUrl + "/1.1/statuses/user_timeline.json?screen_name=" + screen_name;
+            if (options != null) {
+                var separator = "&";
+                if (options.Q != null) {
+                    url += separator + "q=" + options.Q.Replace(":", "%3A").Replace(" ", "%20");
+                }
+                if (options.Count != null) {
+                    url += separator + "count=" + options.Count;
+                }
+            }
+            var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
+
+            var authHeader = "Bearer " + Bearer;
+            request.Headers.Add(HttpRequestHeader.Authorization, authHeader);
+            request.Method = "GET";
+
+            using (var httpResponse = (HttpWebResponse)request.GetResponse()) {
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream())) {
+                    string result = streamReader.ReadToEnd();
+                    try {
+                        List<Status> response = JsonSerializer.DeserializeFromString<List<Status>>(result);
                         return response;
                     } catch (Exception e) {
                         throw e;

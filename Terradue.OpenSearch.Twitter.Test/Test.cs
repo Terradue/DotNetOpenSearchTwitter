@@ -98,7 +98,25 @@ namespace Terradue.OpenSearch.Twitter.Test {
             Assert.AreEqual(1, osr.TotalResults);
         }
 
+        [Test()]
+        public void SearchFeedsGEP() {
 
+            var parameters = new NameValueCollection();
+
+            var collection = new TwitterCollection(App, "http://localhost");
+            collection.Identifier = "tweet";
+            collection.Accounts = new List<TwitterAccount>();
+            collection.Accounts.Add(new TwitterAccount { Title = null, Author = "esa_gep", Tags = null});            
+
+            parameters.Set("count", "5");
+            parameters.Set("searchtype", "search");
+            var osr = ose.Query(collection, parameters);
+            Assert.AreEqual(5, osr.TotalResults);
+
+            parameters.Set("searchtype", "timeline");
+            osr = ose.Query(collection, parameters);
+            Assert.AreEqual(5, osr.TotalResults);
+        }
     }
 }
 

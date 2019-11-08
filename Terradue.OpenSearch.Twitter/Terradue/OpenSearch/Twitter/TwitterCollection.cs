@@ -66,48 +66,73 @@ namespace Terradue.OpenSearch.Twitter {
 
             var twitterClient = new TwitterClient(Application.ConsumerKey, Application.ConsumerSecretKey);
 
-            var q = parameters["q"] != null ? "\"" + parameters["q"] + "\" AND " : "";
-            var authors = parameters["author"] != null && parameters["author"] != "" ? parameters["author"].Split(',') : null;
-            foreach (var account in Accounts) {
-                if (account.Author != null) {
+            //dealing with SEARCH type accounts
+            if (parameters["searchtype"] == null || parameters["searchtype"]=="search") {
+                var q = parameters["q"] != null ? "\"" + parameters["q"] + "\" AND " : "";
+                var authors = parameters["author"] != null && parameters["author"] != "" ? parameters["author"].Split(',') : null;
+                foreach (var account in Accounts) {
+                    if (account.Author != null) {
 
-                    //check if author is requested in search
-                    var addAuthor = false;
-                    if (authors != null) {
-                        foreach (var author in authors)
-                            if (author == account.Author) addAuthor = true;
-                    } else addAuthor = true; //we add all if null
+                        //check if author is requested in search
+                        var addAuthor = false;
+                        if (authors != null) {
+                            foreach (var author in authors)
+                                if (author == account.Author) addAuthor = true;
+                        } else addAuthor = true; //we add all if null
 
-                    if (addAuthor) {
-                        q += "from:" + account.Author;
-                        if (account.Tags != null && account.Tags.Count > 0) {
-                            foreach (var tag in account.Tags) {
-                                q += " AND #" + tag;
+                        if (addAuthor) {
+                            q += "from:" + account.Author;
+                            if (account.Tags != null && account.Tags.Count > 0) {
+                                foreach (var tag in account.Tags) {
+                                    q += " AND #" + tag;
+                                }
                             }
+                            q += " OR ";
                         }
-                        q += " OR ";
+                    }
+                }
+                q = q.TrimEnd(" OR ".ToCharArray());
+                q = q.TrimEnd(" AND ".ToCharArray());
+
+                SearchOptions options = new SearchOptions();
+                options.Q = q;
+                options.Count = parameters["count"];
+
+                TwitterSearchResult tweetResults = null;
+                try {
+                    tweetResults = twitterClient.Search(options);
+                } catch (Exception e) {
+                    var ie = e;
+                }
+
+                if (tweetResults != null) {
+                    foreach (Status tweet in tweetResults.statuses) {
+                        result.Add(new TwitterFeed(this.BaseUrl, tweet));
                     }
                 }
             }
-            q = q.TrimEnd(" OR ".ToCharArray());
-            q = q.TrimEnd(" AND ".ToCharArray());
 
-            SearchOptions options = new SearchOptions();
-            options.Q = q;
-            options.Count = parameters["count"];
+            //dealing with TIMELINE type accounts
+            else if (parameters["searchtype"] != null && parameters["searchtype"] == "timeline") {
+                foreach (var account in Accounts) {
+                    if (account.Author != null) {
 
-            TwitterSearchResult tweetResults = null;
-            try {
-                tweetResults = twitterClient.Search(options);
-            } catch (Exception e) {
-                var ie = e;
-            }
+                        SearchOptions options = new SearchOptions();
+                        options.Q = parameters["q"];
+                        options.Count = parameters["count"] ?? "10";
 
-            if(tweetResults != null){
-                foreach (Status tweet in tweetResults.statuses) {
-                    result.Add(new TwitterFeed(this.BaseUrl, tweet));
+                        try {
+                            var timelineResults = twitterClient.GetUserTimeline(account.Author, options);
+                            foreach (Status tweet in timelineResults) {
+                                result.Add(new TwitterFeed(this.BaseUrl, tweet));
+                            }
+                        } catch (Exception e) {
+                            var ie = e;
+                        }
+                    }
                 }
             }
+
             return result;
         }
 
@@ -122,7 +147,7 @@ namespace Terradue.OpenSearch.Twitter {
             AtomFeed feed = new AtomFeed();
             List<AtomItem> items = new List<AtomItem>();
 
-            parameters.Set("count","100");//to allow a bigger total result
+            //parameters.Set("count","100");//to allow a bigger total result
             var feeds = GetFeeds(parameters);
 
             if (feeds != null) {
