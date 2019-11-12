@@ -23,7 +23,7 @@ pipeline {
     }
     stage('Package') {
       steps {
-          sh "nuget4mono -g origin/${env.BRANCH_NAME} -p Terradue.OpenSearch.Twitter/packages.config Terradue.OpenSearch.Twitter/bin/Terradue.OpenSearch.Twitter.dll"
+          sh "nuget4mono -g origin/${env.BRANCH_NAME} -p ${workspace}/Terradue.OpenSearch.Twitter/packages.config ${workspace}/Terradue.OpenSearch.Twitter/bin/Terradue.OpenSearch.Twitter.dll"
           sh 'cat *.nuspec'
           sh 'nuget pack -OutputDirectory build'
           sh "echo ${params.NUGET_PUBLISH}"           
