@@ -114,21 +114,19 @@ namespace Terradue.OpenSearch.Twitter {
 
             //dealing with TIMELINE type accounts
             else if (parameters["searchtype"] != null && parameters["searchtype"] == "timeline") {
-                foreach (var account in Accounts) {
-                    if (account.Author != null) {
+                var author = parameters["author"];
+                if (!string.IsNullOrEmpty(author)) {
+                    SearchOptions options = new SearchOptions();
+                    options.Q = parameters["q"];
+                    options.Count = parameters["count"] ?? "10";
 
-                        SearchOptions options = new SearchOptions();
-                        options.Q = parameters["q"];
-                        options.Count = parameters["count"] ?? "10";
-
-                        try {
-                            var timelineResults = twitterClient.GetUserTimeline(account.Author, options);
-                            foreach (Status tweet in timelineResults) {
-                                result.Add(new TwitterFeed(this.BaseUrl, tweet));
-                            }
-                        } catch (Exception e) {
-                            var ie = e;
+                    try {
+                        var timelineResults = twitterClient.GetUserTimeline(author, options);
+                        foreach (Status tweet in timelineResults) {
+                            result.Add(new TwitterFeed(this.BaseUrl, tweet));
                         }
+                    } catch (Exception e) {
+                        var ie = e;
                     }
                 }
             }
