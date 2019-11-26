@@ -81,7 +81,7 @@ namespace Terradue.OpenSearch.Twitter.Test {
         }
 
 
-        [Test()]
+        //[Test()]
         public void SearchFeedsSpecial() {
 
             var twitterClient = new TwitterClient(App.ConsumerKey, App.ConsumerSecretKey);
@@ -111,9 +111,10 @@ namespace Terradue.OpenSearch.Twitter.Test {
             parameters.Set("count", "5");
             parameters.Set("searchtype", "search");
             var osr = ose.Query(collection, parameters);
-            Assert.AreEqual(5, osr.TotalResults);
+            Assert.LessOrEqual(osr.TotalResults, 5);
 
             parameters.Set("searchtype", "timeline");
+            parameters.Set("author", "esa_gep");
             osr = ose.Query(collection, parameters);
             Assert.AreEqual(5, osr.TotalResults);
         }
